@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Rapid Theme Modification</name>
+	<code>repid</code>
+  <version>1.0</version>
+  <author>nexer</author>
+  <link>http://nexer.by/</link>
+	<file path="catalog/controller/common/header.php">
+		<operation>
+			<search><![CDATA[
+				$this->load->language('common/header');
+			]]></search>
+			<add position="after"><![CDATA[
+				$this->load->language('rapid/rapid');
+
+				$this->load->model('setting/setting');
+
+				$data['language_id'] = $this->config->get('config_language_id');
+				$language_id = $this->config->get('config_language_id');
+
+				$rapid = array();
+				$rapid = $this->model_setting_setting->getSetting('rapid', $this->config->get('config_store_id'));
+
+				$data['header_menu'] = array();
+
+
+				$data['header_menu_toggle'] = false;
+
+				if (isset($rapid['rapid_main_menu_toggle'])) {
+					$data['header_menu_toggle'] = $rapid['rapid_main_menu_toggle'];
+				}
+
+				if (isset($rapid['rapid_main_menu_item'])) {
+					$data['header_menu'] = $rapid['rapid_main_menu_item'];
+				}
+
+				if (!empty($data['header_menu'])){
+					foreach ($data['header_menu'] as $key => $value) {
+						$sort_heder_menu[$key] = $value['sort'];
+					}
+					array_multisort($sort_heder_menu, SORT_ASC, $data['header_menu']);
+				}
+				]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[
+				$data['text_wishlist'] = sprintf($this->language->get('text_wishlist'), $this->model_account_wishlist->getTotalWishlist());
+			]]></search>
+			<add position="after"><![CDATA[
+				$data['text_head_wishlist_value'] = sprintf($this->language->get('text_head_wishlist_value'), $this->model_account_wishlist->getTotalWishlist());
+				$data['text_head_wishlist'] = $this->language->get('text_head_wishlist');
+				]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[
+				$data['text_wishlist'] = sprintf($this->language->get('text_wishlist'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
+			]]></search>
+			<add position="after"><![CDATA[
+				$data['text_head_wishlist_value'] = sprintf($this->language->get('text_head_wishlist_value'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
+				$data['text_head_wishlist'] = $this->language->get('text_head_wishlist');
+			]]></add>
+		</operation>
+
+		<operation>
+		  <search><![CDATA[
+					$data['categories'][] = array(
+		  ]]></search>
+		  <add position="after"><![CDATA[
+					'category_id' => $category['category_id'],
+		 ]]></add>
+		</operation>
+			<operation>
+		  <search><![CDATA[
+					'name'  => $child['name'] . ($this->config->get('config_product_count') ? ' (' . $this->model_catalog_product->getTotalProducts($filter_data) . ')' : ''),
+		  ]]></search>
+		  <add position="replace"><![CDATA[
+					'name'  => $child['name'] . ($this->config->get('config_product_count') ? ' <span class="count">' . $this->model_catalog_product->getTotalProducts($filter_data) . '</span>' : ''),
+					]]></add>
+		</operation>
+			<operation>
+		  <search><![CDATA[
+					foreach ($children as $child) {
+		  ]]></search>
+		  <add position="after"><![CDATA[
+					$children2_data = array();
+					$children2 = $this->model_catalog_category->getCategories($child['category_id']);
+					foreach ($children2 as $child2) {
+						$filter2_data = array(
+							'filter_category_id'  => $child2['category_id'],
+							'filter_sub_category' => true
+						);
+						$children2_data[] = array(
+							'name'  => $child2['name'] . ($this->config->get('config_product_count') ? ' <span class="count">' . $this->model_catalog_product->getTotalProducts($filter2_data) . '</span>' : ''),
+							'href'  => $this->url->link('product/category', 'path=' . $category['category_id'] . '_' . $child['category_id'].'_'. $child2['category_id'])
+						);
+					}
+		]]></add>
+		</operation>
+			<operation>
+		  <search><![CDATA[
+					$children_data[] = array(
+		  ]]></search>
+		  <add position="after"><![CDATA[
+					'category_id' => $child['category_id'],
+					'children2'    => $children2_data,
+		  ]]></add>
+		</operation>
+	</file>
+
+	<file path="catalog/controller/account/wishlist.php">
+		<operation>
+			<search><![CDATA[
+				$this->load->language('account/wishlist');
+			]]></search>
+			<add position="after"><![CDATA[
+				$this->load->language('rapid/rapid');
+				]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[
+				$json['total'] = sprintf($this->language->get('text_wishlist'), $this->model_account_wishlist->getTotalWishlist());
+			]]></search>
+			<add position="after"><![CDATA[
+				$json['total_custom'] = sprintf($this->language->get('text_head_wishlist_value'), $this->model_account_wishlist->getTotalWishlist());
+				]]></add>
+		</operation>
+		<operation>
+			<search><![CDATA[
+				$json['total'] = sprintf($this->language->get('text_wishlist'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
+			]]></search>
+			<add position="after"><![CDATA[
+				$json['total_custom'] = sprintf($this->language->get('text_head_wishlist_value'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
+				]]></add>
+		</operation>
+	</file>
+
+  <file path="catalog/controller/extension/module/{special,latest,featured,bestseller}.php">
+    <operation>
+      <search><![CDATA[
+        $data['heading_title'] = $this->language->get('heading_title');
+      ]]></search>
+      <add position="before"><![CDATA[
+        $this->document->addStyle('catalog/view/javascript/jquery/owl-carousel/owl.carousel.css');
+        $this->document->addScript('catalog/view/javascript/jquery/owl-carousel/owl.carousel.min.js');
+        static $module = 0;
+      ]]></add>
+    </operation>
+    <operation>
+      <search><![CDATA[
+      $data['products'][] = array(
+      ]]></search>
+      <add position="before"><![CDATA[
+        $data['module'] = $module++;
+      ]]></add>
+    </operation>
+  </file>
+  <file path="catalog/controller/product/product.php">
+    <operation>
+      <search><![CDATA[
+        $this->load->language('product/product');
+      ]]></search>
+      <add position="before"><![CDATA[
+        $this->document->addStyle('catalog/view/javascript/jquery/owl-carousel/owl.carousel.css');
+        $this->document->addScript('catalog/view/javascript/jquery/owl-carousel/owl.carousel.min.js');
+
+      ]]></add>
+    </operation>
+  </file>
+  	<file path="catalog/controller/common/footer.php">
+		<operation>
+		  <search><![CDATA[
+					$this->load->language('common/footer');
+		  ]]></search>
+		  <add position="after"><![CDATA[
+					$this->load->model('setting/setting');
+					$this->load->model('design/banner');
+					$this->load->model('tool/image');
+
+					$data['language_id'] = $this->config->get('config_language_id');
+
+					$data['rapid'] = array();
+					$data['rapid'] = $this->model_setting_setting->getSetting('rapid');
+
+					$rapid = array();
+					$rapid = $this->model_setting_setting->getSetting('rapid', $this->config->get('config_store_id'));
+
+					$pay_icons_banner_id = -99;
+					$data['pay_icons_toggle'] = false;
+					$data['footer_map_toggle'] = false;
+					$data['footer_map'] = array();
+
+					if(!empty($rapid)){
+						$pay_icons_banner_id = $rapid['rapid_pay_icons_banner_id'];
+						$data['pay_icons_toggle'] = $rapid['rapid_pay_icons_toggle'];
+					}
+
+					$data['pay_icons'] = array();
+					$pay_icons = $this->model_design_banner->getBanner($pay_icons_banner_id);
+
+					foreach ($pay_icons as $pay_icon) {
+						if (is_file(DIR_IMAGE . $pay_icon['image'])) {
+							$data['pay_icons'][] = array(
+								'title' => $pay_icon['title'],
+								'link'  => $pay_icon['link'],
+								'image' => $this->model_tool_image->resize($pay_icon['image'], 48, 32)
+							);
+						}
+					}
+
+		  ]]></add>
+		</operation>
+		<operation>
+		  <search><![CDATA[
+					$data['powered'] = sprintf($this->language->get('text_powered'), $this->config->get('config_name'), date('Y', time()));
+		  ]]></search>
+		  <add position="replace"><![CDATA[
+					
+					$data['powered'] = sprintf($this->language->get('text_powered'), $this->config->get('config_name'), date('Y', time())). ' Design - <a href="http://nexer.by" class="nexer-logo" target="_blank"><img src="http://nexer.by/for_demo/logo/favicon.png" height="16px" width="16px" title="nexer.by" alt="nexer.by" /></a>';
+		  ]]></add>
+		</operation>
+	</file>
+</modification>
